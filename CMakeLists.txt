@@ -8,7 +8,8 @@ set(Catch2_DIR ${CMAKE_BINARY_DIR})
 
 # Make executables appear in build, not build/src
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
+enable_testing()
+include(CTest)
 # Build application
 add_subdirectory(app)
 
