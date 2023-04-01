@@ -14,7 +14,6 @@ public:
 
     void setAcceleration(const Eigen::Vector3d& in_acceleration);
     void update(double dt);
-     
     void SumAccelerations(const std::vector<Particle>& particles, double epsilon);
  
 
@@ -24,4 +23,6 @@ private:
     Eigen::Vector3d acceleration;
     double mass;
 };
+Eigen::Vector3d calcAcceleration(const Particle& p1, const Particle& p2, double epsilon=0.0);
+
 #endif
