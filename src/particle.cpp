@@ -1,6 +1,5 @@
 #include "particle.hpp"
 #include <Eigen/Core>
-
 Particle::Particle(const Eigen::Vector3d& in_position, const Eigen::Vector3d& in_velocity, const Eigen::Vector3d& in_acceleration, double in_mass)
     : position(in_position), velocity(in_velocity), acceleration(in_acceleration), mass(in_mass) {}
 
@@ -52,3 +51,4 @@ void Particle::SumAccelerations(const std::vector<Particle>& particles, double e
         }
     }
 }
+
