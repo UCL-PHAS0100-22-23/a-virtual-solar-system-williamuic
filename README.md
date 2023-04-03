@@ -47,7 +47,22 @@ You are expected to edit the `CMakeLists.txt` file in each folder to add or remo
 ## Usage Instructions
 
 You should fill in the instructions for using the app here.
+For solarSystemSimulator in section 1.3, we can build with following commands.
 
+```
+./build/solarSystemSimulator -h
+./build/solarSystemSimulator -help
+./build/solarSystemSimulator -t (timestep)
+./build/solarSystemSimulator -timestep (timestep)
+./build/solarSystemSimulator -n (number of steps)
+./build/solarSystemSimulator -numsteps (number of steps)
+./build/solarSystemSimulator -t (timestep) -n (number of steps)
+```
+The output of 1.3 with 1 full year simulation and 0.0001 dt is as follows.
+
+![Alt text](1.3output.png)
+The position is in order Sun, Mercury, Venus, etc.
+So the Earth is the fourth one which initial position is (0.827466, 0.561516, 0) and the final position is (0.831277, 0.557608, 0) which is close to initial position after 1 year simulation. 
 ## Credits
 
 This project is maintained by Dr. Jamie Quinn as part of UCL ARC's course, Research Computing in C++.
