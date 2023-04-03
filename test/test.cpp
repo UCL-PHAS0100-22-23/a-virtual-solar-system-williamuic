@@ -31,6 +31,40 @@ std::vector<Particle> create_initial_particles() {
     }
     return particles;
 }
+double calcKineticEnergy(const Particle& p) {
+    double v_squared = p.getVelocity().squaredNorm();
+    return 0.5 * p.getMass() * v_squared;
+}
+
+double calcPotentialEnergy(const Particle& p1, const Particle& p2) {
+    Eigen::Vector3d r = p2.getPosition() - p1.getPosition();
+    double distance = r.norm();
+
+    // Avoid division by zero
+    if (distance < 1e-10 || &p1 == &p2) {
+        return 0.0;
+    }
+
+    double energy = -0.5 * p1.getMass() * p2.getMass() / distance;
+    return energy;
+}
+
+double calcTotalEnergy(const std::vector<Particle>& particles) {
+    double kinetic_energy = 0.0;
+    double potential_energy = 0.0;
+
+    // Calculate kinetic and potential energy for each particle
+    for (size_t i = 0; i < particles.size(); ++i) {
+        const Particle& p1 = particles[i];
+        kinetic_energy += calcKineticEnergy(p1);
+
+        for (size_t j = i + 1; j < particles.size(); ++j) {
+            const Particle& p2 = particles[j];
+            potential_energy += calcPotentialEnergy(p1, p2);
+        }
+    }
+    return kinetic_energy + potential_energy;
+}
 TEST_CASE("Particle moves with no acceleration", "[particle]") {
     Particle p(Eigen::Vector3d(1.0, 2.0, 3.0), Eigen::Vector3d(4.0, 5.0, 6.0), Eigen::Vector3d(0.0, 0.0, 0.0), 1.0);
     double dt = 0.1;
@@ -188,4 +222,28 @@ TEST_CASE("single body orbits around the Sun", "[solarSystem]") {
     }
     Eigen::Vector3d expected_pos(1, 0, 0);
     REQUIRE(particles[1].getPosition().isApprox(expected_pos, 1e-6));
+}
+
+TEST_CASE("calculate kinetic energy", "[energy]") {
+    Particle p(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(1, 0, 0), Eigen::Vector3d(0, 0, 0), 1);
+    double expected_energy = 0.5;
+    double energy = calcKineticEnergy(p);
+    REQUIRE(energy == expected_energy);
+}
+
+TEST_CASE("calculate potential energy between two particles", "[energy]") {
+    Particle p1(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), 1);
+    Particle p2(Eigen::Vector3d(1, 0, 0), Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), 0.1);
+    double expected_energy = -0.05;
+    double energy = calcPotentialEnergy(p1, p2);
+    REQUIRE(energy == expected_energy);
+}
+
+TEST_CASE("calculate total energy of system", "[energy]") {
+    Particle p1(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), 1);
+    Particle p2(Eigen::Vector3d(1, 0, 0), Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), 0.1);
+    std::vector<Particle> particles = {p1, p2};
+    double expected_energy = -0.05;
+    double energy = calcTotalEnergy(particles);
+    REQUIRE(energy == expected_energy);
 }
