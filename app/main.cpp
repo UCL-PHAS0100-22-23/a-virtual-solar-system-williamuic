@@ -45,39 +45,20 @@ void print_help() {
     std::cout << "  -h, --help            Help message" << std::endl;
     std::cout << "  -t, --timestep        Time step" << std::endl;
     std::cout << "  -n, --numsteps        Number of time steps" << std::endl;
+    std::cout << "  -s, --solar           solarSystemGenerator" << std::endl;
+    std::cout << "  -r, --random          randomGenerator with number of particles" << std::endl;
+    std::cout << "  -e,                   epsilon" << std::endl;
 }
 
-std::vector<Particle> create_initial_particles() {
-    std::vector<double> masses = {1.0, 1.0/6023600, 1.0/408524, 1.0/332946.038, 1.0/3098710, 1.0/1047.55, 1.0/3499, 1.0/22962, 1.0/19352};
-    std::vector<double> distances = {0.0, 0.4, 0.7, 1.0, 1.5, 5.2, 9.5, 19.2, 30.1};
-    std::vector<Particle> particles;
-    particles.reserve(masses.size());
-    //Developer could choose using rd or use a fix number so that every time it will generate same random number
-    std::random_device rd;
-    std::mt19937 gen(80);
-    std::uniform_real_distribution<> dist(0, 2 * M_PI);
-    // Create particle for the Sun
-    Eigen::Vector3d position(0.0, 0.0, 0.0);
-    Eigen::Vector3d velocity(0.0, 0.0, 0.0);
-    Eigen::Vector3d acceleration(0.0, 0.0, 0.0);
-    particles.emplace_back(position, velocity, acceleration, masses[0]);
-    // Create particles for each planet
-    for (size_t i = 1; i < masses.size(); ++i) {
-        double theta = dist(gen);
-        double r = distances[i];
 
-        Eigen::Vector3d position(r * sin(theta), r * cos(theta), 0.0);
-        Eigen::Vector3d velocity(-sqrt(1.0 / r) * cos(theta), sqrt(1.0 / r) * sin(theta), 0.0);
-        Eigen::Vector3d acceleration(0.0, 0.0, 0.0);
-        particles.emplace_back(position, velocity, acceleration, masses[i]);
-    }
-    return particles;
-}
 
 int main(int argc, char *argv[]) {
     double dt = 0.0001;
-    double total_time =  2  * 100 * M_PI;
+    double total_time =  2  * M_PI; //When running 100 years should use 2*100*M_PI
     int num_steps = total_time/dt;
+    std::unique_ptr<InitialConditionGenerator> generator;
+    double epsilon = 1e-5;
+    int num_particles = 0;
     if (argc == 1) {
         print_help();
         return 0;
@@ -104,15 +85,32 @@ int main(int argc, char *argv[]) {
                 std::cerr << "Error: " << arg << " requires an argument" << std::endl;
                 return 1;
             }
+        } else if (arg == "-s" || arg == "--solar") {
+            // Assign pointer to SolarSystemGenerator object
+            generator = std::make_unique<SolarSystemGenerator>();
+        } else if (arg == "-r" || arg == "--random") {
+            // Assign pointer to RandomGenerator object
+            num_particles = std::stoi(argv[++i]);
+            generator = std::make_unique<RandomGenerator>(num_particles);
+        } else if (arg == "-e") {
+            if (i + 1 < argc) {
+                epsilon = std::stod(argv[++i]);
+            } else {
+                std::cerr << "Error: " << arg << " requires an argument" << std::endl;
+                return 1;
+            }
         } else {
             std::cerr << "Error: Invalid argument '" << arg << "'" << std::endl;
             print_help();
             return 1;
         }
     }
-
+    if (!generator) {
+        std::cerr << "Error: You should choose a generator" << std::endl;
+        return 1;
+    }
     // Initialize particles
-    std::vector<Particle> particles = create_initial_particles();
+    std::vector<Particle> particles = generator->generateInitialConditions();
 
     // Print initial positions
     std::cout << "Initial positions:" << std::endl;
@@ -136,14 +134,12 @@ int main(int argc, char *argv[]) {
     }
     initial_total_energy = calcTotalEnergy(particles);
 
-    std::cout << "Initial kinetic energy = " << initial_kinetic_energy << std::endl;
-    std::cout << "Initial potential energy = " << initial_potential_energy << std::endl;
-    std::cout << "Initial total energy = " << initial_total_energy << std::endl;
+    
     auto start_time = std::chrono::high_resolution_clock::now();
     for (int step = 0; step < num_steps; ++step) {
         // Update accelerations
         for (Particle& p : particles) {
-            p.SumAccelerations(particles, 1e-5);
+            p.SumAccelerations(particles, epsilon);
         }
         
         // Update positions and velocities
@@ -176,7 +172,9 @@ int main(int argc, char *argv[]) {
         }
     }
     final_total_energy = calcTotalEnergy(particles);
-
+    std::cout << "Initial kinetic energy = " << initial_kinetic_energy << std::endl;
+    std::cout << "Initial potential energy = " << initial_potential_energy << std::endl;
+    std::cout << "Initial total energy = " << initial_total_energy << std::endl;
     std::cout << "Final kinetic energy = " << final_kinetic_energy << std::endl;
     std::cout << "Final potential energy = " << final_potential_energy << std::endl;
     std::cout << "Final total energy = " << final_total_energy << std::endl;

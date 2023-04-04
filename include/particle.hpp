@@ -24,5 +24,22 @@ private:
     double mass;
 };
 Eigen::Vector3d calcAcceleration(const Particle& p1, const Particle& p2, double epsilon=0.0);
+class InitialConditionGenerator {
+public:
+    virtual std::vector<Particle> generateInitialConditions() = 0;
+};
 
+class SolarSystemGenerator : public InitialConditionGenerator {
+public:
+    std::vector<Particle> generateInitialConditions() override;
+};
+
+class RandomGenerator : public InitialConditionGenerator {
+public:
+    RandomGenerator(int num_particles) : num_particles_(num_particles) {}
+    std::vector<Particle> generateInitialConditions() override;
+
+private:
+    int num_particles_;
+};
 #endif

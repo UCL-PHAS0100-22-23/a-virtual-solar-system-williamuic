@@ -73,7 +73,30 @@ So the Earth is the fourth one which initial position is (0.827466, 0.561516, 0)
 ![Alt text](dt0.0005.png)
 ![Alt text](dt0.0001.png)
 ![Alt text](dt0.00005.png)
-We simulate 8 different time step from 0.1 down to 0.00005. From the results,we can see that when dt is large until 0.001, the accuracy is decreasing.
+We simulate 8 different time step from 0.1 down to 0.00005. From the results,we can see that when dt is large until 0.001, the accuracy is decreasing. I also compare using optimizer O2 and without optimizer O0.
+![Alt text](O2.png)
+![Alt text](O0.png)
+But it seems that the optimizer have no much influence in my specific case. However, it is still a good starting point to use O2 optimizer. And combine the accuracy performance. We can see that using time step 0.001 and O2 would be a good balance in my case.
+
+2.3 Increase the scale solar system with random generator
+
+```
+./build/solarSystemSimulator -s -t (timestep) -n (number of steps) -e (epsilon)
+./build/solarSystemSimulator -r (number of particles) -t (timestep) -n (number of steps) -e (epsilon)
+```
+
+With timestep 0.001, number of step 10 and epsilon 0.000001. I summarize with 8, 64, 256, 1024 and 2048 particles as follows.
+8:
+![Alt text](random8.png)
+64:
+![Alt text](random64.png)
+256:
+![Alt text](random256.png)
+1024:
+![Alt text](random1024.png)
+2048：
+![Alt text](random2048.png)
+
 ## Credits
 
 This project is maintained by Dr. Jamie Quinn as part of UCL ARC's course, Research Computing in C++.
