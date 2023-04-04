@@ -63,6 +63,17 @@ The output of 1.3 with 1 full year simulation and 0.0001 dt is as follows.
 ![Alt text](1.3output.png)
 The position is in order Sun, Mercury, Venus, etc.
 So the Earth is the fourth one which initial position is (0.827466, 0.561516, 0) and the final position is (0.831277, 0.557608, 0) which is close to initial position after 1 year simulation. 
+
+2.2 Benchmarking the simulation together with the 2.1 output
+![Alt text](dt0.1.png)
+![Alt text](dt0.05.png)
+![Alt text](dt0.01.png)
+![Alt text](dt0.005.png)
+![Alt text](dt0.001.png)
+![Alt text](dt0.0005.png)
+![Alt text](dt0.0001.png)
+![Alt text](dt0.00005.png)
+We simulate 8 different time step from 0.1 down to 0.00005. From the results,we can see that when dt is large until 0.001, the accuracy is decreasing.
 ## Credits
 
 This project is maintained by Dr. Jamie Quinn as part of UCL ARC's course, Research Computing in C++.

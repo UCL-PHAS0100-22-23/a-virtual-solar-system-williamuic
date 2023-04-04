@@ -76,7 +76,7 @@ std::vector<Particle> create_initial_particles() {
 
 int main(int argc, char *argv[]) {
     double dt = 0.0001;
-    double total_time =  2  * M_PI;
+    double total_time =  2  * 100 * M_PI;
     int num_steps = total_time/dt;
     if (argc == 1) {
         print_help();
@@ -139,6 +139,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Initial kinetic energy = " << initial_kinetic_energy << std::endl;
     std::cout << "Initial potential energy = " << initial_potential_energy << std::endl;
     std::cout << "Initial total energy = " << initial_total_energy << std::endl;
+    auto start_time = std::chrono::high_resolution_clock::now();
     for (int step = 0; step < num_steps; ++step) {
         // Update accelerations
         for (Particle& p : particles) {
@@ -151,6 +152,10 @@ int main(int argc, char *argv[]) {
         }
         
     }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto total_time1 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    double avg_time = static_cast<double>(total_time1) / num_steps;
+
     std::cout << "Final positions:" << std::endl;
     for (const Particle& p : particles) {
         std::cout << p.getPosition().transpose() << std::endl;
@@ -177,4 +182,6 @@ int main(int argc, char *argv[]) {
     std::cout << "Final total energy = " << final_total_energy << std::endl;
     double energy_difference = std::abs(final_total_energy - initial_total_energy);
     std::cout << "Energy difference = " << energy_difference << std::endl;
+    std::cout << "Timestep = " << dt << ", Total time = " << total_time1 << " ms, Average time = " << avg_time << " ms" << std::endl;
+
 }
