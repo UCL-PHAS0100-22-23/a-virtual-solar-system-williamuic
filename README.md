@@ -97,6 +97,52 @@ With timestep 0.001, number of step 10 and epsilon 0.000001. I summarize with 8,
 2048：
 ![Alt text](random2048.png)
 
+2.4
+a. For the main loop, since we have no nested loop in main loop. We use schedule to compare the difference. For different chunk size and type of schedule we have the following results.
+
+With OpenMP and 2048 particles 0.001 timestep 3000 number of steps epsilon 1e-8.
+Without Parallelizing with OpenMP:
+![Alt text](2.4ParallelWithoutOpenMP.png)
+Static and chunk size 1:
+![Alt text](2.4Static1.png)
+Static and chunk size 4:
+![Alt text](2.4Static4.png)
+Dynamic and chunk size 4:
+![Alt text](dynamic4.png)
+Guided and chunk size 4:
+![Alt text](guided4.png)
+We can see that the main loop when applying different type and chunk size
+have different performance. And they are very close. The dynamic and guided type with 4 chunk size outperform than the static. And by checking the output, all the simulation are correct. with different parallelization.
+
+b.
+Strong:
+
+| `OMP_NUM_THREADS | Time (ms) | Speedup |
+|---|---|---|
+| 1 | 189754 | 1.00 |
+| 2 | 105523 | 1.80 |
+| 3 | 78319 | 2.42 |
+| 4 | 63789 | 2.97 |
+| 5 | 54985 | 3.45 |
+| 6 | 48980 | 3.87 |
+| 7 | 43377 | 4.37 |
+| 8 | 38868 | 4.88 |
+| 16 | 24275 | 7.82 |
+
+Weak:
+
+| `OMP_NUM_THREADS | Num Particles | Time (ms) | Speedup |
+|---|---|---|---|
+| 1 | 1024 | 47660 | 1.00 |
+| 2 | 2048 | 104839 | 0.45 |
+| 3 | 3072 | 170110 | 0.28 |
+| 4 | 4096 | 237221 | 0.20 |
+| 5 | 5120 | 309191 | 0.15 |
+| 6 | 6144 | 384245 | 0.12 |
+| 7 | 7168 | 462648 | 0.10 |
+| 8 | 8192 | 555014 | 0.09 |
+| 16 | 16384 | 1457117 | 0.03 |
+
 ## Credits
 
 This project is maintained by Dr. Jamie Quinn as part of UCL ARC's course, Research Computing in C++.

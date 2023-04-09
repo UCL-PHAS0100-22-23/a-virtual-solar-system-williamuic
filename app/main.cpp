@@ -86,15 +86,21 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         } else if (arg == "-s" || arg == "--solar") {
-            // Assign pointer to SolarSystemGenerator object
             generator = std::make_unique<SolarSystemGenerator>();
         } else if (arg == "-r" || arg == "--random") {
-            // Assign pointer to RandomGenerator object
             num_particles = std::stoi(argv[++i]);
             generator = std::make_unique<RandomGenerator>(num_particles);
         } else if (arg == "-e") {
             if (i + 1 < argc) {
                 epsilon = std::stod(argv[++i]);
+            } else {
+                std::cerr << "Error: " << arg << " requires an argument" << std::endl;
+                return 1;
+            }
+        } else if (arg == "--threads") {
+            if (i + 1 < argc) {
+                int num_threads = std::stoi(argv[++i]);
+                omp_set_num_threads(num_threads);
             } else {
                 std::cerr << "Error: " << arg << " requires an argument" << std::endl;
                 return 1;
@@ -113,10 +119,10 @@ int main(int argc, char *argv[]) {
     std::vector<Particle> particles = generator->generateInitialConditions();
 
     // Print initial positions
-    std::cout << "Initial positions:" << std::endl;
-    for (const Particle& p : particles) {
+    //std::cout << "Initial positions:" << std::endl;
+    /*for (const Particle& p : particles) {
         std::cout << p.getPosition().transpose() << std::endl;
-    }
+    }*/
     double initial_kinetic_energy = 0.0;
     double initial_potential_energy = 0.0;
     double initial_total_energy = 0.0;
@@ -137,25 +143,25 @@ int main(int argc, char *argv[]) {
     
     auto start_time = std::chrono::high_resolution_clock::now();
     for (int step = 0; step < num_steps; ++step) {
-        // Update accelerations
-        for (Particle& p : particles) {
-            p.SumAccelerations(particles, epsilon);
+        std::vector<Particle> particles_copy(particles);
+        #pragma omp parallel for 
+        for (size_t i = 0; i < particles.size(); ++i) {
+            particles[i].SumAccelerations(particles_copy, epsilon);
         }
-        
-        // Update positions and velocities
-        for (Particle& p : particles) {
-            p.update(dt);
+        #pragma omp parallel for 
+        for (size_t i = 0; i < particles.size(); ++i) {
+            particles[i].update(dt);
         }
-        
-    }
+    
+}
     auto end_time = std::chrono::high_resolution_clock::now();
     auto total_time1 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
     double avg_time = static_cast<double>(total_time1) / num_steps;
 
-    std::cout << "Final positions:" << std::endl;
-    for (const Particle& p : particles) {
+    //std::cout << "Final positions:" << std::endl;
+    /* for (const Particle& p : particles) {
         std::cout << p.getPosition().transpose() << std::endl;
-    }
+    } */
     double final_kinetic_energy = 0.0;
     double final_potential_energy = 0.0;
     double final_total_energy = 0.0;
