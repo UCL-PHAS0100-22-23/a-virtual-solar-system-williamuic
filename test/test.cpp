@@ -247,3 +247,87 @@ TEST_CASE("calculate total energy of system", "[energy]") {
     double energy = calcTotalEnergy(particles);
     REQUIRE(energy == expected_energy);
 }
+
+
+
+
+TEST_CASE("Energy calculation is correct (parallel vs serial)", "[energy]") {
+    const int num_particles = 100;
+    const double dt = 0.001;
+    const double total_time = 10.0;
+    const int num_steps = static_cast<int>(total_time / dt);
+    const double epsilon = 1e-5;
+
+    // Generate particles
+    std::vector<Particle> particles = create_initial_particles();
+
+
+    // Calculate initial energies using serial version
+    double initial_kinetic_energy_serial = 0.0;
+    double initial_potential_energy_serial = 0.0;
+    double initial_total_energy_serial = 0.0;
+    for (const Particle& p : particles) {
+        initial_kinetic_energy_serial += calcKineticEnergy(p);
+    }
+    for (size_t i = 0; i < particles.size(); ++i) {
+        const Particle& p1 = particles[i];
+        for (size_t j = i + 1; j < particles.size(); ++j) {
+            const Particle& p2 = particles[j];
+            initial_potential_energy_serial += calcPotentialEnergy(p1, p2);
+        }
+    }
+    initial_total_energy_serial = initial_kinetic_energy_serial + initial_potential_energy_serial;
+
+    // Calculate final energies using serial version
+    std::vector<Particle> particles_serial(particles);
+    for (int step = 0; step < num_steps; ++step) {
+        for (size_t i = 0; i < particles_serial.size(); ++i) {
+            particles_serial[i].SumAccelerations(particles_serial, epsilon);
+        }
+        for (size_t i = 0; i < particles_serial.size(); ++i) {
+            particles_serial[i].update(dt);
+        }
+    }
+    double final_kinetic_energy_serial = 0.0;
+    double final_potential_energy_serial = 0.0;
+    double final_total_energy_serial = 0.0;
+    for (const Particle& p : particles_serial) {
+        final_kinetic_energy_serial += calcKineticEnergy(p);
+    }
+    for (size_t i = 0; i < particles_serial.size(); ++i) {
+        const Particle& p1 = particles_serial[i];
+        for (size_t j = i + 1; j < particles_serial.size(); ++j) {
+            const Particle& p2 = particles_serial[j];
+            final_potential_energy_serial += calcPotentialEnergy(p1, p2);
+        }
+    }
+    final_total_energy_serial = final_kinetic_energy_serial + final_potential_energy_serial;
+    // Calculate final energies using parallel version
+    std::vector<Particle> particles_parallel(particles);
+    for (int step = 0; step < num_steps; ++step) {
+        #pragma omp parallel for
+        for (size_t i = 0; i < particles_parallel.size(); ++i) {
+            particles_parallel[i].SumAccelerations(particles_parallel, epsilon);
+        }
+        #pragma omp parallel for
+        for (size_t i = 0; i < particles_parallel.size(); ++i) {
+            particles_parallel[i].update(dt);
+        }
+    }
+    double final_kinetic_energy_parallel = 0.0;
+    double final_potential_energy_parallel = 0.0;
+    double final_total_energy_parallel = 0.0;
+    #pragma omp parallel for reduction(+:final_kinetic_energy_parallel, final_potential_energy_parallel)
+    for (size_t i = 0; i < particles_parallel.size(); ++i) {
+        final_kinetic_energy_parallel += calcKineticEnergy(particles_parallel[i]);
+        for (size_t j = i + 1; j < particles_parallel.size(); ++j) {
+            final_potential_energy_parallel += calcPotentialEnergy(particles_parallel[i], particles_parallel[j]);
+        }
+    }
+    final_total_energy_parallel = final_kinetic_energy_parallel + final_potential_energy_parallel;
+
+    // Compare energies
+    REQUIRE(std::abs(final_kinetic_energy_parallel - final_kinetic_energy_serial) < 1e-10);
+    REQUIRE(std::abs(final_potential_energy_parallel - final_potential_energy_serial) < 1e-10);
+    REQUIRE(std::abs(final_total_energy_parallel - final_total_energy_serial) < 1e-10);
+}

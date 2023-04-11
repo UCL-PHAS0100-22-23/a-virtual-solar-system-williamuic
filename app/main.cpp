@@ -128,17 +128,18 @@ int main(int argc, char *argv[]) {
     double initial_total_energy = 0.0;
 
     // Calculate initial energies of the system
-    for (const Particle& p : particles) {
-        initial_kinetic_energy += calcKineticEnergy(p);
-    }
+    #pragma omp parallel for reduction(+:initial_kinetic_energy, initial_potential_energy)
     for (size_t i = 0; i < particles.size(); ++i) {
         const Particle& p1 = particles[i];
+        initial_kinetic_energy += calcKineticEnergy(p1);
+
         for (size_t j = i + 1; j < particles.size(); ++j) {
             const Particle& p2 = particles[j];
             initial_potential_energy += calcPotentialEnergy(p1, p2);
         }
     }
-    initial_total_energy = calcTotalEnergy(particles);
+
+    initial_total_energy = initial_kinetic_energy + initial_potential_energy;
 
     
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -167,17 +168,18 @@ int main(int argc, char *argv[]) {
     double final_total_energy = 0.0;
 
     // Calculate final energies of the system
-    for (const Particle& p : particles) {
-        final_kinetic_energy += calcKineticEnergy(p);
-    }
+    #pragma omp parallel for reduction(+:final_kinetic_energy, final_potential_energy)
     for (size_t i = 0; i < particles.size(); ++i) {
         const Particle& p1 = particles[i];
+        final_kinetic_energy += calcKineticEnergy(p1);
+
         for (size_t j = i + 1; j < particles.size(); ++j) {
             const Particle& p2 = particles[j];
             final_potential_energy += calcPotentialEnergy(p1, p2);
         }
     }
-    final_total_energy = calcTotalEnergy(particles);
+
+    final_total_energy = final_kinetic_energy + final_potential_energy;
     std::cout << "Initial kinetic energy = " << initial_kinetic_energy << std::endl;
     std::cout << "Initial potential energy = " << initial_potential_energy << std::endl;
     std::cout << "Initial total energy = " << initial_total_energy << std::endl;
