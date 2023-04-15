@@ -2,44 +2,69 @@
 #define PARTICLE_HPP
 
 #include <Eigen/Core>
-
+// Particle class simulates a particle in space
 class Particle {
 public:
-    Particle(const Eigen::Vector3d& in_position, const Eigen::Vector3d& in_velocity, const Eigen::Vector3d& in_acceleration, double in_mass);
+  // Constructor that takes in the initial position, velocity, acceleration, and
+  // mass of the particle
+  Particle(const Eigen::Vector3d &in_position,
+           const Eigen::Vector3d &in_velocity,
+           const Eigen::Vector3d &in_acceleration, double in_mass);
 
-    Eigen::Vector3d getPosition() const;
-    Eigen::Vector3d getVelocity() const;
-    Eigen::Vector3d getAcceleration() const;
-    double getMass() const;
+  // Getter functions for the particle's position, velocity, acceleration, and
+  // mass
+  Eigen::Vector3d getPosition() const;
+  Eigen::Vector3d getVelocity() const;
+  Eigen::Vector3d getAcceleration() const;
+  double getMass() const;
 
-    void setAcceleration(const Eigen::Vector3d& in_acceleration);
-    void update(double dt);
-    void SumAccelerations(const std::vector<Particle>& particles, double epsilon);
- 
+  // Setter function for the particle's acceleration
+  void setAcceleration(const Eigen::Vector3d &in_acceleration);
+
+  // Update the particle's position and velocity based on its current state and
+  // elapsed time dt
+  void update(double dt);
+
+  // Sum the accelerations of all particles in a given vector
+  void SumAccelerations(const std::vector<Particle> &particles, double epsilon);
 
 private:
-    Eigen::Vector3d position;
-    Eigen::Vector3d velocity;
-    Eigen::Vector3d acceleration;
-    double mass;
+  Eigen::Vector3d position;     // The particle's position
+  Eigen::Vector3d velocity;     // The particle's velocity
+  Eigen::Vector3d acceleration; // The particle's acceleration
+  double mass;                  // The particle's mass
 };
-Eigen::Vector3d calcAcceleration(const Particle& p1, const Particle& p2, double epsilon=0.0);
+
+// Calculate the acceleration between two particles using their positions and
+// masses
+Eigen::Vector3d calcAcceleration(const Particle &p1, const Particle &p2,
+                                 double epsilon = 0.0);
+
+// The InitialConditionGenerator abstract class defines a method for generating
+// initial conditions for a simulation
 class InitialConditionGenerator {
 public:
-    virtual std::vector<Particle> generateInitialConditions() = 0;
+  virtual std::vector<Particle> generateInitialConditions() = 0;
 };
 
+// The SolarSystemGenerator class generates initial conditions for a solar
+// system simulation
 class SolarSystemGenerator : public InitialConditionGenerator {
 public:
-    std::vector<Particle> generateInitialConditions() override;
+  std::vector<Particle> generateInitialConditions() override;
 };
 
+// The RandomGenerator class generates initial conditions for a simulation with
+// a specified number of particles
 class RandomGenerator : public InitialConditionGenerator {
 public:
-    RandomGenerator(int num_particles) : num_particles_(num_particles) {}
-    std::vector<Particle> generateInitialConditions() override;
+  // Constructor that takes in the number of particles to generate
+  RandomGenerator(int num_particles) : num_particles_(num_particles) {}
+
+  // Generate initial conditions for the simulation
+  std::vector<Particle> generateInitialConditions() override;
 
 private:
-    int num_particles_;
+  int num_particles_; // The number of particles to generate
 };
 #endif
